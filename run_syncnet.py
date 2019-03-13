@@ -4,6 +4,7 @@
 import time, pdb, argparse, subprocess, pickle, os, gzip
 
 from SyncNetInstance import *
+from run_pipeline import get_gpu
 
 # ==================== PARSE ARGUMENT ====================
 
@@ -29,9 +30,11 @@ s = SyncNetInstance();
 s.loadParameters(opt.initial_model);
 print("Model %s loaded."%opt.initial_model);
 
+get_gpu()
+
 # ==================== GET OFFSETS ====================
 
-with open(os.path.join(opt.work_dir,opt.reference,'tracks.pckl'), 'r') as fil:
+with open(os.path.join(opt.work_dir,opt.reference,'tracks.pckl'), 'rb') as fil:
     tracks = pickle.load(fil)
 
 dists = []

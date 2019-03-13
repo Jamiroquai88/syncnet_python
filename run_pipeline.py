@@ -5,11 +5,24 @@ import numpy as np
 import tensorflow as tf
 import cv2
 import scenedetect
+import subprocess
 
 from scipy.interpolate import interp1d
 from utils import label_map_util
 from scipy.io import wavfile
 from scipy import signal
+
+
+def get_gpu():
+  try:
+    command = 'nvidia-smi --query-gpu=memory.free,memory.total --format=csv |tail -n+2| ' \
+                  'awk \'BEGIN{FS=" "}{if ($1/$3 > 0.98) print NR-1}\''
+    gpu_idx = subprocess.check_output(command, shell=True).rsplit(b'\n')[0].decode('utf-8')
+    os.environ["CUDA_VISIBLE_DEVICES"] = gpu_idx
+    print('Using GPU {}.'.format(gpu_idx))
+  except subprocess.CalledProcessError:
+    raise ValueError('No GPUs seems to be available.')
+
 
 # ========== ========== ========== ==========
 # # PARSE ARGS
@@ -204,6 +217,7 @@ def inference_video(opt):
 
   cap = cv2.VideoCapture(os.path.join(opt.avi_dir,opt.reference,'video.avi'))
 
+  get_gpu()
   detection_graph = tf.Graph()
   with detection_graph.as_default():
       od_graph_def = tf.GraphDef()

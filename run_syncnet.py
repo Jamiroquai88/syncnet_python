@@ -4,7 +4,7 @@
 import time, pdb, argparse, subprocess, pickle, os, gzip
 
 from SyncNetInstance import *
-from run_pipeline import get_gpu
+from utils_gpu import get_gpu
 
 # ==================== PARSE ARGUMENT ====================
 

@@ -12,17 +12,7 @@ from utils import label_map_util
 from scipy.io import wavfile
 from scipy import signal
 
-
-def get_gpu():
-  try:
-    command = 'nvidia-smi --query-gpu=memory.free,memory.total --format=csv |tail -n+2| ' \
-                  'awk \'BEGIN{FS=" "}{if ($1/$3 > 0.98) print NR-1}\''
-    gpu_idx = subprocess.check_output(command, shell=True).rsplit(b'\n')[0].decode('utf-8')
-    os.environ["CUDA_VISIBLE_DEVICES"] = gpu_idx
-    print('Using GPU {}.'.format(gpu_idx))
-  except subprocess.CalledProcessError:
-    raise ValueError('No GPUs seems to be available.')
-
+from utils_gpu import get_gpu
 
 # ========== ========== ========== ==========
 # # PARSE ARGS
@@ -167,7 +157,7 @@ def crop_video(opt,track,cropfile):
 
   # ========== CROP AUDIO FILE ==========
 
-  command = ("ffmpeg -y -i %s -ac 1 -vn -acodec pcm_s16le -ar 16000 -ss %.3f -to %.3f %s" % (os.path.join(opt.avi_dir,opt.reference,'video.avi'),audiostart,audioend,audiotmp)) #-async 1 
+  command = ("ffmpeg -threads 1 -y -i %s -ac 1 -vn -acodec pcm_s16le -ar 16000 -ss %.3f -to %.3f %s" % (os.path.join(opt.avi_dir,opt.reference,'video.avi'),audiostart,audioend,audiotmp)) #-async 1 
   output = subprocess.call(command, shell=True, stdout=None)
 
   if output != 0:
@@ -177,7 +167,7 @@ def crop_video(opt,track,cropfile):
 
   # ========== COMBINE AUDIO AND VIDEO FILES ==========
 
-  command = ("ffmpeg -y -i %st.avi -i %s -c:v copy -c:a copy %s.avi" % (cropfile,audiotmp,cropfile)) #-async 1 
+  command = ("ffmpeg -threads 1 -y -i %st.avi -i %s -c:v copy -c:a copy %s.avi" % (cropfile,audiotmp,cropfile)) #-async 1 
   output = subprocess.call(command, shell=True, stdout=None)
 
   if output != 0:
@@ -217,7 +207,7 @@ def inference_video(opt):
 
   cap = cv2.VideoCapture(os.path.join(opt.avi_dir,opt.reference,'video.avi'))
 
-  get_gpu()
+  get_gpu(really=False)
   detection_graph = tf.Graph()
   with detection_graph.as_default():
       od_graph_def = tf.GraphDef()
@@ -229,8 +219,9 @@ def inference_video(opt):
   dets = []
 
   with detection_graph.as_default():
-    config = tf.ConfigProto()
+    config = tf.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
     config.gpu_options.allow_growth = True
+    
     with tf.Session(graph=detection_graph, config=config) as sess:
       frame_num = 0;
       while True:
@@ -314,7 +305,7 @@ if not(os.path.exists(os.path.join(opt.avi_dir,opt.reference))):
 if not(os.path.exists(os.path.join(opt.tmp_dir,opt.reference))):
   os.makedirs(os.path.join(opt.tmp_dir,opt.reference))
 
-command = ("ffmpeg -y -i %s -qscale:v 4 -async 1 -r 25 -deinterlace %s" % (opt.videofile,os.path.join(opt.avi_dir,opt.reference,'video.avi'))) #-async 1 
+command = ("ffmpeg -threads 1 -y -i %s -qscale:v 4 -async 1 -r 25 -deinterlace %s" % (opt.videofile,os.path.join(opt.avi_dir,opt.reference,'video.avi'))) #-async 1 
 output = subprocess.call(command, shell=True, stdout=None)
 faces = inference_video(opt)
 

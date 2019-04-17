@@ -69,7 +69,7 @@ class SyncNetInstance(torch.nn.Module):
 
         audiotmp = os.path.join(opt.tmp_dir,'audio.wav')
 
-        command = ("ffmpeg -y -i %s -async 1 -ac 1 -vn -acodec pcm_s16le -ar 16000 %s" % (videofile,audiotmp))
+        command = ("ffmpeg -threads 1 -y -i %s -async 1 -ac 1 -vn -acodec pcm_s16le -ar 16000 %s" % (videofile,audiotmp))
         output = subprocess.call(command, shell=True, stdout=None)
 
         sample_rate, audio = wavfile.read(audiotmp)

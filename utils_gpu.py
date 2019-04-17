@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 
 def get_gpu(really=True):
@@ -9,8 +10,7 @@ def get_gpu(really=True):
             gpu_idx = subprocess.check_output(command, shell=True).rsplit(b'\n')[0].decode('utf-8')
             print('Using GPU {}.'.format(gpu_idx))
         except subprocess.CalledProcessError:
-            print('No GPUs seems to be available.')
-            # raise ValueError('No GPUs seems to be available.')
+            raise ValueError('No GPUs seems to be available.')
     else:
         gpu_idx = '-1'
-    os.environ["CUDA_VISIBLE_DEVICES"] = gpu_idx
+    os.environ['CUDA_VISIBLE_DEVICES'] = gpu_idx

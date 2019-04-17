@@ -2,9 +2,14 @@
 #-*- coding: utf-8 -*-
 
 import time, pdb, argparse, subprocess, pickle, os, gzip
+import socket
+
+print(f'Running on {socket.gethostname()}')
 
 from SyncNetInstance import *
 from utils_gpu import get_gpu
+
+start_time = time.time()
 
 # ==================== PARSE ARGUMENT ====================
 
@@ -25,12 +30,22 @@ setattr(opt,'crop_dir',os.path.join(opt.data_dir,'pycrop'))
 
 # ==================== LOAD MODEL ====================
 
-s = SyncNetInstance();
+have_gpu = False
+for i in range(600):
+    try:
+        get_gpu()
+        s = SyncNetInstance();
+        have_gpu = True
+        break
+    except RuntimeError:
+        time.sleep(0.5)
+
+if not have_gpu:
+    raise ValueError(f'GPU not found on {socket.gethostname()}')
 
 s.loadParameters(opt.initial_model);
 print("Model %s loaded."%opt.initial_model);
 
-get_gpu()
 
 # ==================== GET OFFSETS ====================
 
@@ -55,3 +70,5 @@ with open(os.path.join(opt.work_dir,opt.reference,'offsets.txt'), 'w') as fil:
       
 with open(os.path.join(opt.work_dir,opt.reference,'activesd.pckl'), 'wb') as fil:
     pickle.dump(dists, fil)
+
+print(f'Time elapsed: {time.time() - start_time}')

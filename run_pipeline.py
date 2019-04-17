@@ -6,6 +6,7 @@ import tensorflow as tf
 import cv2
 import scenedetect
 import subprocess
+import time
 
 from scipy.interpolate import interp1d
 from utils import label_map_util
@@ -17,6 +18,8 @@ from utils_gpu import get_gpu
 # ========== ========== ========== ==========
 # # PARSE ARGS
 # ========== ========== ========== ==========
+
+start_time = time.time()
 
 parser = argparse.ArgumentParser(description = "FaceTracker");
 parser.add_argument('--data_dir', type=str, default='/dev/shm', help='Output direcotry');
@@ -207,7 +210,7 @@ def inference_video(opt):
 
   cap = cv2.VideoCapture(os.path.join(opt.avi_dir,opt.reference,'video.avi'))
 
-  get_gpu(really=False)
+  get_gpu(really=True)
   detection_graph = tf.Graph()
   with detection_graph.as_default():
       od_graph_def = tf.GraphDef()
@@ -219,7 +222,8 @@ def inference_video(opt):
   dets = []
 
   with detection_graph.as_default():
-    config = tf.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+    # config = tf.ConfigProto(device_count={'GPU': 0}, intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+    config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     
     with tf.Session(graph=detection_graph, config=config) as sess:
@@ -338,3 +342,5 @@ savepath = os.path.join(opt.work_dir,opt.reference,'tracks.pckl')
 
 with open(savepath, 'wb') as fil:
   pickle.dump(vidtracks, fil)
+
+print(f'Time elapsed: {time.time() - start_time}')

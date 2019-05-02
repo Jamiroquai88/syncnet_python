@@ -160,7 +160,7 @@ def crop_video(opt,track,cropfile):
 
   # ========== CROP AUDIO FILE ==========
 
-  command = ("ffmpeg -threads 1 -y -i %s -ac 1 -vn -acodec pcm_s16le -ar 16000 -ss %.3f -to %.3f %s" % (os.path.join(opt.avi_dir,opt.reference,'video.avi'),audiostart,audioend,audiotmp)) #-async 1 
+  command = ("ffmpeg -threads 1 -y -i %s -ac 1 -vn -acodec pcm_s16le -ar 16000 -ss %.3f -to %.3f %s" % (os.path.join(opt.avi_dir,opt.reference,'video.avi'),audiostart,audioend,audiotmp)) #-async 1
   output = subprocess.call(command, shell=True, stdout=None)
 
   if output != 0:
@@ -170,7 +170,7 @@ def crop_video(opt,track,cropfile):
 
   # ========== COMBINE AUDIO AND VIDEO FILES ==========
 
-  command = ("ffmpeg -threads 1 -y -i %st.avi -i %s -c:v copy -c:a copy %s.avi" % (cropfile,audiotmp,cropfile)) #-async 1 
+  command = ("ffmpeg -threads 1 -y -i %st.avi -i %s -c:v copy -c:a copy %s.avi" % (cropfile,audiotmp,cropfile)) #-async 1
   output = subprocess.call(command, shell=True, stdout=None)
 
   if output != 0:
@@ -210,7 +210,7 @@ def inference_video(opt):
 
   cap = cv2.VideoCapture(os.path.join(opt.avi_dir,opt.reference,'video.avi'))
 
-  get_gpu(really=True)
+  get_gpu(really=False)
   detection_graph = tf.Graph()
   with detection_graph.as_default():
       od_graph_def = tf.GraphDef()
@@ -222,7 +222,7 @@ def inference_video(opt):
   dets = []
 
   with detection_graph.as_default():
-    # config = tf.ConfigProto(device_count={'GPU': 0}, intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
+    config = tf.ConfigProto(device_count={'GPU': 0}, intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     
@@ -309,7 +309,7 @@ if not(os.path.exists(os.path.join(opt.avi_dir,opt.reference))):
 if not(os.path.exists(os.path.join(opt.tmp_dir,opt.reference))):
   os.makedirs(os.path.join(opt.tmp_dir,opt.reference))
 
-command = ("ffmpeg -threads 1 -y -i %s -qscale:v 4 -async 1 -r 25 -deinterlace %s" % (opt.videofile,os.path.join(opt.avi_dir,opt.reference,'video.avi'))) #-async 1 
+command = ("ffmpeg -threads 1 -y -i %s -qscale:v 4 -async 1 -r 25 -deinterlace %s" % (opt.videofile,os.path.join(opt.avi_dir,opt.reference,'video.avi'))) #-async 1
 output = subprocess.call(command, shell=True, stdout=None)
 faces = inference_video(opt)
 

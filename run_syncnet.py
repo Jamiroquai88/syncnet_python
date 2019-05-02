@@ -33,7 +33,7 @@ setattr(opt,'crop_dir',os.path.join(opt.data_dir,'pycrop'))
 have_gpu = False
 for i in range(600):
     try:
-        get_gpu()
+        get_gpu(True)
         s = SyncNetInstance();
         have_gpu = True
         break

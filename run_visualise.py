@@ -5,6 +5,7 @@ import torch
 import numpy
 import time, pdb, argparse, subprocess, pickle, os
 import cv2
+import multiprocessing
 
 from scipy import signal
 
@@ -82,12 +83,13 @@ vOut.release()
 
 # ========== CROP AUDIO FILE ==========
 
-command = ("ffmpeg -threads 1 -y -i %s -ac 1 -vn -acodec pcm_s16le -ar 16000 %s" % (os.path.join(opt.avi_dir,opt.reference,'video.avi'),os.path.join(opt.avi_dir,opt.reference,'audio_only.avi')))
+num_cores = multiprocessing.cpu_count()
+command = ("ffmpeg -threads %s -y -i %s -ac 1 -vn -acodec pcm_s16le -ar 16000 %s" % (str(num_cores), os.path.join(opt.avi_dir,opt.reference,'video.avi'),os.path.join(opt.avi_dir,opt.reference,'audio_only.avi')))
 output = subprocess.call(command, shell=True, stdout=None)
 
 # ========== COMBINE AUDIO AND VIDEO FILES ==========
 
-command = ("ffmpeg -threads 1 -y -i %s -i %s -c:v copy -c:a copy %s" % (os.path.join(opt.avi_dir,opt.reference,'video_only.avi'),os.path.join(opt.avi_dir,opt.reference,'audio_only.avi'),os.path.join(opt.avi_dir,opt.reference,'video_out.avi'))) #-async 1
+command = ("ffmpeg -threads %s -y -i %s -i %s -c:v copy -c:a copy %s" % (str(num_cores), os.path.join(opt.avi_dir,opt.reference,'video_only.avi'),os.path.join(opt.avi_dir,opt.reference,'audio_only.avi'),os.path.join(opt.avi_dir,opt.reference,'video_out.avi'))) #-async 1
 output = subprocess.call(command, shell=True, stdout=None)
 
 

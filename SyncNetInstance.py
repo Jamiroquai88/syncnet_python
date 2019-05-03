@@ -7,6 +7,7 @@ import numpy
 import time, pdb, argparse, subprocess, os
 import cv2
 import python_speech_features
+import multiprocessing
 
 from scipy import signal
 from scipy.io import wavfile
@@ -69,7 +70,9 @@ class SyncNetInstance(torch.nn.Module):
 
         audiotmp = os.path.join(opt.tmp_dir,'audio.wav')
 
-        command = ("ffmpeg -threads 1 -y -i %s -async 1 -ac 1 -vn -acodec pcm_s16le -ar 16000 %s" % (videofile,audiotmp))
+        num_cores = multiprocessing.cpu_count()
+
+        command = ("ffmpeg -threads %s -y -i %s -async 1 -ac 1 -vn -acodec pcm_s16le -ar 16000 %s" % (str(num_cores), videofile, audiotmp))
         output = subprocess.call(command, shell=True, stdout=None)
 
         sample_rate, audio = wavfile.read(audiotmp)

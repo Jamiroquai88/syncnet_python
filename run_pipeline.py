@@ -161,7 +161,7 @@ def crop_video(opt,track,cropfile):
 
   # ========== CROP AUDIO FILE ==========
 
-  num_cores = multiprocessing.cpu_count()
+  num_cores = 4
   command = ("ffmpeg -threads %s -y -i %s -ac 1 -vn -acodec pcm_s16le -ar 16000 -ss %.3f -to %.3f %s" % (str(num_cores), os.path.join(opt.avi_dir,opt.reference,'video.avi'),audiostart,audioend,audiotmp)) #-async 1
   output = subprocess.call(command, shell=True, stdout=None)
 
@@ -310,7 +310,7 @@ if not(os.path.exists(os.path.join(opt.avi_dir,opt.reference))):
 if not(os.path.exists(os.path.join(opt.tmp_dir,opt.reference))):
   os.makedirs(os.path.join(opt.tmp_dir,opt.reference))
 
-num_cores = multiprocessing.cpu_count()
+num_cores = 4
 command = ("ffmpeg -threads %s -y -i %s -qscale:v 4 -async 1 -r 25 -deinterlace %s" % (str(num_cores), opt.videofile,os.path.join(opt.avi_dir,opt.reference,'video.avi'))) #-async 1
 output = subprocess.call(command, shell=True, stdout=None)
 faces = inference_video(opt)

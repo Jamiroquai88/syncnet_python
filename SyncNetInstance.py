@@ -70,7 +70,7 @@ class SyncNetInstance(torch.nn.Module):
 
         audiotmp = os.path.join(opt.tmp_dir,'audio.wav')
 
-        num_cores = multiprocessing.cpu_count()
+        num_cores = 4
 
         command = ("ffmpeg -threads %s -y -i %s -async 1 -ac 1 -vn -acodec pcm_s16le -ar 16000 %s" % (str(num_cores), videofile, audiotmp))
         output = subprocess.call(command, shell=True, stdout=None)
